@@ -1,0 +1,121 @@
+---
+title: "Simulation and profiling"
+output: html_document
+---
+
+## str function
+
+str provides information on a object. Very useful for displaying large list. It as an alternative to summary
+
+## Simulation - Generating random numbers
+
+- rnorm: generate random Normal variartes with a given mean and standard deviation (prefix r for random)  
+- dnorm: evaluate the Normal probability density (with given mean/SD) at a point (or vector of points) (prefix d for density)    
+- pnorm: evaluate the cumulative distribution function of a Normal distribution (prefix p for cumulative)
+- qnorm: evaluate de quartile function (prefix q for quantile)  
+- rpois: generate random Poisson variates with a given rate  
+
+
+```{r setup, include=TRUE}
+# example
+#set.seed(1) # important to set the random number generator seed to generate the same set of random number again
+#
+#dnorm(x, mean = 0, sd = 1, log = FALSE)
+#pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE) #if lower.tail = FALSE, then the upper tail of the distribution is evaluated 
+#rnorm(n, mean = 0, sd = 1) #n, number of random variables that you want to generate
+
+# if [PHI] is the cumulative distribution function for a standard Normal distribution, then pnomr(q) = [PHI](q) and qnorm(p) = [PHI]exp(-1)(p)
+```
+
+## Simulation - Simulating a linear model
+
+```{r include=TRUE}
+# example
+set.seed(20)
+x <- rnorm(100) # default mean = 0, sd = 1
+e <- rnorm(100, 0, 2)
+y <- 0.5 + 2 * x + e
+summary(y)
+plot(x,y)
+
+# other example if x is binary
+
+set.seed(10)
+x <- rbinom(100, 1, 0.5)
+x
+e <- rnorm(100, 0, 2)
+y <- 0.5 + 2 * x + e
+summary(y)
+plot(x,y)
+
+# example :simulate from a Poisson model
+
+set.seed(1)
+x <- rnorm(100)
+log.mu <- 0.5 + 0.3 * x
+y <- rpois(100, exp(log.mu))
+summary(y)
+plot(x,y)
+
+
+```
+
+## Simulation - Random sampling
+
+The sample function draws randomly from a specified set of (scalar) objects allowing you to sample from arbitrary distributions.
+
+
+```{r include=TRUE}
+
+set.seed(1)
+sample(1:10, 4)
+sample(1:10, 4)
+sample(letters, 5)
+sample(1:10) ## permutation
+sample(1:10)
+sample(1:10, replace = TRUE)
+```
+
+## R Profiler
+
+**Why is my code so slow?**
+
+- Profiling is a systematic way to examine how much time is spend in different parts of a program  
+- Useful when trying to optimize your code  
+- Often code runs fine once, but what if you have to put it in a loop for 1,000 iterations? Is it still fast enough?  
+- Profiling is better than guessing  
+
+We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil (Donald Knuth).
+--> Design first, then optimize
+
+**Using system.time()**
+
+It takes a R expression as input (can be wrapped in currl braces) and returns the amount of time taken to evaluate the expression.
+Two different type of time: user time (amount of time that is charged to CPUs) and elapse time (the one that we experience)
+```{r include=TRUE}
+system.time(readLines("https://www.google.com"))
+# example 2
+system.time({
+  n <- 1000
+  r <- numeric(n)
+  for(i in 1:n) {
+    x <- rnorm(n)
+    r[i] <- mean(x)
+  }
+
+})
+```
+**Using Rprof()**
+
+R must be compiled with profiler support (but it is usually the case).
+The summaryRprof() function summarizes the output from Rprof().
+
+DO NOT use system.time() and Rprof() together or you will be sad!
+
+The summaryProf() function tabulates the R profiler output and calculates how much time is spent in which function.
+There are two methods for normalizing the data:
+
+- by.total: divides the time spent in each function by the total run time  
+- by.self: does the same but first substracts out time spent in functions above in the call stack  
+
+
